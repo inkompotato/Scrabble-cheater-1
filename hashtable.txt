@@ -1051,7 +1051,7 @@
 1050 |bosslet  brokery  
 1051 |closest  closets  knosped  mulatto  rockery  
 1052 |borasca  dotless  hitchel  
-1053 |dossals  osselet  sestole  toeless  
+1053 |stdossals  osselet  sestole  toeless
 1054 |bondman  
 1055 |bestock  handily  ridgils  schlump  towhees  
 1056 |girlies  weapons  withnay  
