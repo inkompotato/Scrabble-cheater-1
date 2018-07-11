@@ -8,7 +8,7 @@ public class ScrabbleCheater {
         boolean perm = true;
 
         //new instance of our object, that reads in our file and creates a hashtable
-        ScrabbleCheater sc = new ScrabbleCheater(12121, "words_alpha.txt",length);
+        ScrabbleCheater sc = new ScrabbleCheater(20103, "words_alpha.txt",length);
 
         //prints the hashtable to a .txt file
         PrintWriter out;
@@ -40,10 +40,31 @@ public class ScrabbleCheater {
             }
             if (s.equals("/quit")) quit = true;
             else if (s.equals("/perm")) perm = !perm; //change mode from permutations to potential permutations
-            else if (s.length()!=7) System.out.println("INFO: Word needs to have "+length+" characters."); //quit
+            else if (s.equals("/rnd")) {
+                String str = randomString(length);
+                System.out.println(str);
+                System.out.println(sc.cheat(str, perm));
+            }
+            else if (s.length()>length) System.out.println("INFO: Do not input more than "+ length + " characters!"); //quit
             else System.out.println(sc.cheat(s, perm)); //print out permutations
         }
 
+    }
+
+    /**
+     * generates a random string of the specified size. All letters have the same probability
+     * @param length length of the random string
+     * @return randomly generated String
+     */
+    private static String randomString(int length) {
+        Random r = new Random();
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i<length; i++) {
+            char ch = (char) (r.nextInt(26)+97);
+            s.append(ch);
+        }
+
+        return s.toString();
     }
 
     private int size; //size of the hashtable
@@ -51,7 +72,7 @@ public class ScrabbleCheater {
     private LinkedList<String>[] hashtable;
 
     /**
-     * Creates a new scrabble cheater for a fixed wordlength.
+     * Creates a new scrabble cheater for a defined maximum wordlength.
      * It uses a HashTable to access information quickly
      * @param size size of the hashtable
      * @param file path of the dictionary file
@@ -78,15 +99,58 @@ public class ScrabbleCheater {
      * or all potential permutations (words with the same position in the hashtable)
      */
     private String cheat(String s, boolean perm) {
-        StringBuilder returnString = new StringBuilder();
-        int pos = getHashPosition(s.toLowerCase());
-        for (String str : hashtable[pos]){
-            if (!perm)
-                returnString.append(str).append("  ");
-            else if (perm && charArrayEquals(normalize(str.toCharArray()),normalize(s.toCharArray())))
-                    returnString.append(str).append("  ");
+
+        HashSet<String> hs = getSubstrings(s);
+        String[] stra = new String[wordsize];
+        for (int i = 0; i<stra.length; i++){
+            stra[i] = "";
         }
-        return returnString.toString();
+        for (String mstr:hs) {
+            int pos = getHashPosition(mstr.toLowerCase());
+            for (String str : hashtable[pos]){
+                if (!perm)
+                    stra[mstr.length()-1]+=str+"  ";
+                else if (perm && charArrayEquals(normalize(str.toCharArray()),normalize(mstr.toCharArray())))
+                    stra[mstr.length()-1]+=str+"  ";
+            }
+        }
+
+        StringBuilder outputstring = new StringBuilder();
+        for (String string : stra){
+            if (string.length()>0)
+            outputstring.append(string).append("\n");
+        }
+        return outputstring.toString();
+    }
+
+    /**
+     * generates all substrings of a given string
+     * @param s String to get the substrings from
+     * @return HashSet containing all unique substrings of a String with a minimum length of 2
+     */
+    private HashSet<String> getSubstrings(String s){
+        HashSet<String> hs = new HashSet<>();
+        int n = s.length();
+        for (int i = 0; i<n; i++){
+            for (int j = i+1; j<=n; j++){
+                String str = normalizeString(s.substring(i,j));
+                if (str.length()>1)hs.add(str);
+            }
+        }
+        return hs;
+    }
+
+    /**
+     * creates a String out of a HashSet - only for debugging
+     * @param hs HashSet
+     * @return String representation of it
+     */
+    private String printHashSet(HashSet<String> hs){
+        StringBuilder str = new StringBuilder();
+        for (String s:hs) {
+            str.append(s).append("  ");
+        }
+        return str.toString();
     }
 
     /**
@@ -132,7 +196,7 @@ public class ScrabbleCheater {
      */
     private void add(String s) {
         //abort if the word has not the required size and do not add
-        if (s.length()!=wordsize)return;
+        if (s.length()>wordsize || s.length()<=1)return;
         //calculate hash
         int position = getHashPosition(s);
         //add to hashtable
@@ -171,6 +235,21 @@ public class ScrabbleCheater {
     }
 
     /**
+     * normalizes a String to alphabetic order
+     * @param s Sring that is to be normalized
+     * @return normalized String
+     */
+    private String normalizeString(String s){
+        char[] c = s.toCharArray();
+        Arrays.sort(c);
+        StringBuilder sb = new StringBuilder();
+        for (char ch : c){
+            sb.append(ch);
+        }
+        return sb.toString();
+    }
+
+    /**
      * make a nice String out of our HashTable
      * @return String of the HashTable
      */
@@ -206,6 +285,6 @@ public class ScrabbleCheater {
                 largest = size;
             }
         }
-        return " largest chain: "+largest+"\n number of collisions: "+collisions+"\n number of words: "+words;
+        return " longest chain: "+largest+"\n number of collisions: "+collisions+"\n number of words: "+words;
     }
 }
